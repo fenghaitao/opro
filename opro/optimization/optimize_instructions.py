@@ -53,12 +53,20 @@ sys.path.insert(0, OPRO_ROOT_PATH)
 
 from absl import app
 from absl import flags
-import google.generativeai as palm
 import numpy as np
 import openai
 from opro import prompt_utils
 from opro.optimization import opt_utils
 import pandas as pd
+
+# Conditionally import google.generativeai only if needed
+# (has compatibility issues with Python 3.14+)
+try:
+    import google.generativeai as palm
+    PALM_AVAILABLE = True
+except Exception:
+    PALM_AVAILABLE = False
+    palm = None
 
 ROOT_DATA_FOLDER_PATH = os.path.join(OPRO_ROOT_PATH, "data")
 
@@ -193,6 +201,11 @@ def main(_):
     openai.api_key = openai_api_key
   else:
     assert scorer_llm_name == "text-bison"
+    if not PALM_AVAILABLE:
+      raise ImportError(
+          "google.generativeai is not available (Python 3.14+ compatibility issue). "
+          "Please use --scorer='gpt-3.5-turbo' or --scorer='gpt-4' instead."
+      )
     assert (
         palm_api_key
     ), "A PaLM API key is needed when prompting the text-bison model."
@@ -203,6 +216,11 @@ def main(_):
     openai.api_key = openai_api_key
   else:
     assert optimizer_llm_name == "text-bison"
+    if not PALM_AVAILABLE:
+      raise ImportError(
+          "google.generativeai is not available (Python 3.14+ compatibility issue). "
+          "Please use --optimizer='gpt-3.5-turbo' or --optimizer='gpt-4' instead."
+      )
     assert (
         palm_api_key
     ), "A PaLM API key is needed when prompting the text-bison model."

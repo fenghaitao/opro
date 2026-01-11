@@ -14,8 +14,16 @@
 """The utility functions for prompting GPT and Google Cloud models."""
 
 import time
-import google.generativeai as palm
 import openai
+
+# Conditionally import google.generativeai only if needed
+# (has compatibility issues with Python 3.14+)
+try:
+    import google.generativeai as palm
+    PALM_AVAILABLE = True
+except Exception:
+    PALM_AVAILABLE = False
+    palm = None
 
 
 def call_openai_server_single_prompt(
@@ -106,6 +114,11 @@ def call_palm_server_from_cloud(
     input_text, model="text-bison-001", max_decode_steps=20, temperature=0.8
 ):
   """Calling the text-bison model from Cloud API."""
+  if not PALM_AVAILABLE:
+    raise ImportError(
+        "google.generativeai is not available (Python 3.14+ compatibility issue). "
+        "Cannot use PaLM models. Please use OpenAI models instead."
+    )
   assert isinstance(input_text, str)
   assert model == "text-bison-001"
   all_model_names = [
